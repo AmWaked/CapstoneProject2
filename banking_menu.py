@@ -64,7 +64,7 @@ class LoginPage(tkinter.Frame):
         self.input_username.pack()
         self.password_label = tkinter.Label(self, text='Input your password:')
         self.password_label.pack(side='top', fill='x', pady=10)
-        self.input_password = tkinter.Entry(self, width=20)
+        self.input_password = tkinter.Entry(self, width=20, show='*')
         self.input_password.pack()
         self.submit_button = tkinter.Button(self, text='Submit', command=self.login)
         self.submit_button.pack()
