@@ -206,16 +206,18 @@ class Deposit(tkinter.Frame):
         """
         access csv to get current balance then add deposit amount
         """
-
-        with (open('accounts.csv', newline='') as csvfile):
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                if row['username'] == self.controller.username:
-                    self.balance = (row['balance'])
-                    return float(self.balance)
-        self.deposit_amt = (self.input_deposit.get())
-        self.controller.balance = self.deposit_amt + self.controller.balance
-
+        try:
+            with (open('accounts.csv', newline='') as csvfile):
+                reader = csv.DictReader(csvfile)
+                for row in reader:
+                    if row['username'] == self.controller.username:
+                        self.balance = (row['balance'])
+                        return float(self.balance)
+            self.deposit_amt = (self.input_deposit.get())
+            self.controller.balance = self.deposit_amt + self.controller.balance
+        except ValueError:
+            self.deposit_label.config(text='Invalid Input', fg='red', font=('16'))
+            self.deposit_label.pack(side='top', fill='x', pady=10)
 
 class Withdraw(tkinter.Frame):
     """
@@ -243,14 +245,15 @@ class Withdraw(tkinter.Frame):
         """
         access csv file for balance then subtract withdraw amount
         """
-        with (open('accounts.csv', newline='') as csvfile):
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                if row['username'].strip() == self.controller.username.strip():
-                    self.balance = (row['balance'])
-                    return float(self.balance)
-        self.withdraw_amt = (self.input_withdraw.get())
-        self.controller.balance = self.controller.balance - self.withdraw_amt
-
-
-BankMenu().mainloop()
+        try:
+            with (open('accounts.csv', newline='') as csvfile):
+                reader = csv.DictReader(csvfile)
+                for row in reader:
+                    if row['username'].strip() == self.controller.username.strip():
+                        self.balance = (row['balance'])
+                        return float(self.balance)
+            self.withdraw_amt = (self.input_withdraw.get())
+            self.controller.balance = self.controller.balance - self.withdraw_amt
+        except ValueError:
+            self.withdraw_label.config(text='Invalid Input', fg='red', font=('16'))
+            self.withdraw_label.pack(side='top', fill='x', pady=10)
