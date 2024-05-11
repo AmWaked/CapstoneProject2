@@ -78,8 +78,8 @@ class LoginPage(tkinter.Frame):
 
         """
         try:
-            self.controller.username = (self.input_username.get())
-            self.controller.password = (self.input_password.get())
+            self.controller.username = self.input_username.get()
+            self.controller.password = self.input_password.get()
             is_valid = self.login_validity(self.controller.username, self.controller.password)
             if is_valid:
                 self.controller.current_user = self.controller.username
@@ -95,7 +95,7 @@ class LoginPage(tkinter.Frame):
         Reads the CSV file and checks if the username and password are valid
         """
         try:
-            with open('accounts.csv', newline='') as csvfile:
+            with open('accounts.csv','r',newline='') as csvfile:
                 reader = csv.DictReader(csvfile)
                 for row in reader:
                     if row['username'] == username and row['password'] == password:
@@ -155,10 +155,9 @@ class GetBalance(tkinter.Frame):
         self.controller = controller
         label = tkinter.Label(self, text='Balance', font=18)
         label.pack(pady=10)
-        self.balance = self.get_current_balance()
 
         self.get_balance = tkinter.Button(self, text='Get Balance',
-                                          command=self.get_current_balance())
+                                          command=self.get_current_balance)
         self.get_balance.pack()
 
         back_button = tkinter.Button(self, text='Back to Main Menu',
@@ -169,14 +168,15 @@ class GetBalance(tkinter.Frame):
         """
         access csv to see account balance
         """
-        self.balance_label = tkinter.Label(self, text=f'Balance - ${self.controller.balance}')
-        self.balance_label.pack()
-        with (open('accounts.csv', newline='') as csvfile):
+
+        with open('accounts.csv', 'r', newline='') as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
                 if row['username'] == self.controller.username:
-                    self.balance = row['balance']
-                    return self.balance
+                    self.controller.balance = row['balance']
+                    self.balance_label = tkinter.Label(self, text=f'Balance - ${self.controller.balance}')
+                    self.balance_label.pack()
+                    return self.controller.balance
 
 
 class Deposit(tkinter.Frame):
@@ -186,6 +186,7 @@ class Deposit(tkinter.Frame):
     def __init__(self, parent, controller):
         tkinter.Frame.__init__(self, parent)
         self.controller = controller
+        self.deposit_amt = 0
 
         label = tkinter.Label(self, text='Deposit', font=18)
         label.pack(pady=10)
@@ -206,15 +207,22 @@ class Deposit(tkinter.Frame):
         """
         access csv to get current balance then add deposit amount
         """
+        after_deposit = []
         try:
-            with (open('accounts.csv', newline='') as csvfile):
+            with (open('accounts.csv', 'r', newline='') as csvfile):
                 reader = csv.DictReader(csvfile)
                 for row in reader:
                     if row['username'] == self.controller.username:
-                        self.balance = (row['balance'])
-                        return float(self.balance)
-            self.deposit_amt = (self.input_deposit.get())
-            self.controller.balance = self.deposit_amt + self.controller.balance
+                        self.controller.balance = float(row['balance'])
+                        self.deposit_amt = float(self.input_deposit.get())
+                        new_balance = self.controller.balance + self.deposit_amt
+                        row['balance'] = f'{new_balance:.2f}'
+                    after_deposit.append(row)
+            with open('accounts.csv', 'w', newline='') as csvfile:
+                fieldnames = reader.fieldnames
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(after_deposit)
         except ValueError:
             self.deposit_label.config(text='Invalid Input', fg='red', font=('16'))
             self.deposit_label.pack(side='top', fill='x', pady=10)
@@ -245,15 +253,25 @@ class Withdraw(tkinter.Frame):
         """
         access csv file for balance then subtract withdraw amount
         """
+        after_withdraw = []
         try:
-            with (open('accounts.csv', newline='') as csvfile):
+            with (open('accounts.csv', 'r', newline='') as csvfile):
                 reader = csv.DictReader(csvfile)
                 for row in reader:
-                    if row['username'].strip() == self.controller.username.strip():
-                        self.balance = (row['balance'])
-                        return float(self.balance)
-            self.withdraw_amt = (self.input_withdraw.get())
-            self.controller.balance = self.controller.balance - self.withdraw_amt
+                    if row['username'] == self.controller.username:
+                        self.controller.balance = float(row['balance'])
+                        self.withdraw_amt = float(self.input_withdraw.get())
+                        new_balance = self.controller.balance - self.withdraw_amt
+                        row['balance'] = f'{new_balance:.2f}'
+                    after_withdraw.append(row)
+            with open('accounts.csv', 'w', newline='') as csvfile:
+                fieldnames = reader.fieldnames
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(after_withdraw)
         except ValueError:
             self.withdraw_label.config(text='Invalid Input', fg='red', font=('16'))
             self.withdraw_label.pack(side='top', fill='x', pady=10)
+
+
+BankMenu().mainloop()
